@@ -5,24 +5,19 @@ from http import HTTPStatus
 from django.urls import reverse
 
 
-
 @pytest.mark.parametrize(
-    'name, news_object',
+    'name, args',
     (
         ('news:home', None),
-        ('news:detail', pytest.lazy_fixture('news')),
+        ('news:detail', pytest.lazy_fixture('id_for_args')),
         ('users:login', None),
         ('users:logout', None),
         ('users:signup', None),
     ),
 )
-@pytest.mark.django_db
-def test_pages_availability_for_anonymous_user(client, name, news_object):
+def test_pages_availability_for_anonymous_user(client, name, args):
     """Тест доступности различных страниц для анонимных пользователей."""
-    if news_object is not None:
-        url = reverse(name, args=(news_object.id,))
-    else:
-        url = reverse(name)
+    url = reverse(name, args=args)
     response = client.get(url)
     assert response.status_code == HTTPStatus.OK
 

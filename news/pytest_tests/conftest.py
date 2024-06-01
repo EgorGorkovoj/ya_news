@@ -9,7 +9,6 @@ from news.models import News, Comment
 from news.forms import BAD_WORDS
 
 
-
 @pytest.fixture
 def autor_comment(django_user_model):
     return django_user_model.objects.create(username='Автор комментария')
@@ -53,6 +52,7 @@ def news_on_homepage():
             date=today - timedelta(days=index)
         ) for index in range(settings.NEWS_COUNT_ON_HOME_PAGE + 1)
     ]
+    return all_news
 
 
 @pytest.fixture
@@ -72,14 +72,19 @@ def comment_sort(autor_comment, news):
         comment = Comment.objects.create(
             news=news, author=autor_comment, text=f'Текст {index}',
         )
-    comment.created = now + timedelta(days=index)
-
-
-@pytest.fixture
-def form_data():
-    return {'text': 'Новый текст'}
+        comment.created = now + timedelta(days=index)
 
 
 @pytest.fixture
 def bad_words_data():
     return {'text': f'Какой-то текст, {BAD_WORDS[0]}, еще текст'}
+
+
+@pytest.fixture
+def id_for_args(news):
+    return (news.id,)
+
+
+@pytest.fixture(autouse=True)
+def enable_db_access_for_all_tests(db):
+    pass

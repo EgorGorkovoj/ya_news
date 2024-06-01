@@ -6,7 +6,6 @@ from django.urls import reverse
 from news.forms import CommentForm
 
 
-@pytest.mark.django_db
 def test_news_count(client, news_on_homepage):
     """Тестирование новостей на главной странице."""
     url = reverse('news:home')
@@ -15,7 +14,6 @@ def test_news_count(client, news_on_homepage):
     assert news_count == settings.NEWS_COUNT_ON_HOME_PAGE
 
 
-@pytest.mark.django_db
 def test_news_order(client, news_on_homepage):
     """
     Тестирование сортировки новостей на главной странице, от новой к старой.
@@ -28,12 +26,12 @@ def test_news_order(client, news_on_homepage):
     assert all_dates == sorted_dates
 
 
-def test_comments_order(client, comment_sort, news):
+def test_comments_order(client, comment_sort, id_for_args):
     """
     Тестирование сортировки комментариев на отдельной странице новости,
     от старого к новому.
     """
-    url = reverse('news:detail', args=(news.id,))
+    url = reverse('news:detail', args=id_for_args)
     response = client.get(url)
     assert 'news' in response.context
     news = response.context['news']
@@ -43,29 +41,16 @@ def test_comments_order(client, comment_sort, news):
     assert all_timestamps == sorted_timestamps
 
 
-@pytest.mark.parametrize(
-    'name, news_object',
-    (
-        ('news:detail', pytest.lazy_fixture('news')),
-    ),
-)
-@pytest.mark.django_db
-def test_anonymous_client_has_no_form(client, name, news_object):
+def test_anonymous_client_has_no_form(client, id_for_args):
     """Тест доступности формы для анонимных пользователей."""
-    url = reverse(name, args=(news_object.id,))
+    url = reverse('news:detail', args=id_for_args)
     response = client.get(url)
     assert 'form' not in response.context
 
 
-@pytest.mark.parametrize(
-    'name, news_object',
-    (
-        ('news:detail', pytest.lazy_fixture('news')),
-    ),
-)
-def test_authorized_client_has_form(autor_comment_client, name, news_object):
+def test_authorized_client_has_form(autor_comment_client, id_for_args):
     """Тест доступности формы для авторизованных пользователей."""
-    url = reverse(name, args=(news_object.id,))
+    url = reverse('news:detail', args=id_for_args)
     response = autor_comment_client.get(url)
     assert 'form' in response.context
     assert isinstance(response.context['form'], CommentForm)
